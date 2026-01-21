@@ -1,14 +1,17 @@
 # Next Up 2
 
 A GNOME Shell extension that shows your next calendar event in the status bar.
-Fork of [Next Up](https://github.com/artisticat1/gnome-next-up) extension with suppoer for gnome 48 and additional features.
+Fork of [Next Up](https://github.com/artisticat1/gnome-next-up) extension
+
+- Supports GNOME 48+
+- Shows current event in indicator text (optional)
 
 ![screenshot1](screenshots/screenshot1.png)
 ![screenshot2](screenshots/screenshot2.png)
 ![screenshot3](screenshots/screenshot3.png)
 ![screenshot4](screenshots/screenshot4.png)
 
-Tested on GNOME 42.4.
+Tested on GNOME 49.
 
 ## Installation
 
