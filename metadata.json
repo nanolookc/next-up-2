@@ -1,9 +1,9 @@
 {
   "name": "Next Up 2",
-  "description": "Show your next calendar event in the status bar",
+  "description": "Show your next and current calendar event in the status bar",
   "uuid": "next-up-2@nanolookc.github.com",
   "shell-version": ["48", "49"],
-  "url": "https://github.com/nanolookc/gnome-next-up-2",
+  "url": "https://github.com/nanolookc/next-up-2",
   "settings-schema": "org.gnome.shell.extensions.next-up-2",
   "gettext-domain": "next-up-2-indicator-extension",
   "version": 1
