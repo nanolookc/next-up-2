@@ -30,6 +30,9 @@ const IndicatorInstance = GObject.registerClass(Indicator);
 
 export default class NextUpExtension extends Extension {
   enable() {
+
+    log("NEXT-UP-2 ENABLED");
+
     this._indicator = new IndicatorInstance({
       confettiGicon: Gio.icon_new_for_string(
         this.path + "/assets/party-popper.png"

@@ -14,7 +14,7 @@ export default class Indicator extends PanelMenu.Button {
   }
 
   _init() {
-    super._init(0.0, _("Next Up Indicator"));
+    super._init(0.0, _("Next Up 2 Indicator"));
 
     this._calendarSource = new Calendar.DBusEventSource();
 
@@ -30,7 +30,6 @@ export default class Indicator extends PanelMenu.Button {
       y_align: Clutter.ActorAlign.CENTER,
       reactive: true,
       x_expand: true,
-      pack_start: false,
     });
 
     this._alarmIcon = new St.Icon({
