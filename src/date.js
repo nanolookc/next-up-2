@@ -19,7 +19,6 @@ function notFullDayEvent(event) {
 
 export function getTodaysEvents(calendarSource) {
   const src = calendarSource;
-  src._loadEvents(true);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Get event from today at midnight
@@ -27,7 +26,10 @@ export function getTodaysEvents(calendarSource) {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  const todaysEvents = src.getEvents(today, tomorrow).filter(notFullDayEvent);
+  src.requestRange(today, tomorrow);
+
+  const rawEvents = src.getEvents(today, tomorrow);
+  const todaysEvents = rawEvents.filter(notFullDayEvent);
 
   return todaysEvents;
 }
