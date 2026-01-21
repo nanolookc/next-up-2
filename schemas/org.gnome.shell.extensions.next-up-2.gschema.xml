@@ -5,5 +5,8 @@
     <key name="which-panel" type="i">
       <default>1</default>
     </key>
+    <key name="text-format" type="i">
+      <default>1</default>
+    </key>
   </schema>
 </schemalist>

@@ -38,6 +38,24 @@ export default class NextUpExtensionPreferences extends ExtensionPreferences {
     row.add_suffix(dropdown);
     row.activatable_widget = dropdown;
 
+    const textRow = new Adw.ActionRow({ title: "Show current event in indicator text" });
+    group.add(textRow);
+
+    const textDropdown = new Gtk.DropDown({
+      model: Gtk.StringList.new(["Don't show (old)", "Show"]),
+      valign: Gtk.Align.CENTER,
+    });
+
+    settings.bind(
+      "text-format",
+      textDropdown,
+      "selected",
+      Gio.SettingsBindFlags.DEFAULT
+    );
+
+    textRow.add_suffix(textDropdown);
+    textRow.activatable_widget = textDropdown;
+
     // Add our page to the window
     window.add(page);
   }

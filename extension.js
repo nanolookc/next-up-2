@@ -102,7 +102,11 @@ export default class NextUpExtension extends Extension {
     );
     const eventStatus =
       DateHelperFunctions.getNextEventsToDisplay(todaysEvents);
-    const text = DateHelperFunctions.eventStatusToIndicatorText(eventStatus);
+    const textFormat = this._settings.get_int("text-format");
+    const text = DateHelperFunctions.eventStatusToIndicatorText(
+      eventStatus,
+      textFormat
+    );
 
     if (eventStatus.currentEvent === null && eventStatus.nextEvent === null) {
       this._indicator.showConfettiIcon();

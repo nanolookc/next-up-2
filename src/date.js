@@ -81,7 +81,7 @@ export function getNextEventsToDisplay(todaysEvents) {
   };
 }
 
-export function eventStatusToIndicatorText(eventStatus) {
+export function eventStatusToIndicatorText(eventStatus, textFormat) {
   function displayNextEvent(event) {
     const timeText = getTimeOfEventAsText(event.date);
     const diffText = getTimeToEventAsText(event.date);
@@ -91,13 +91,23 @@ export function eventStatusToIndicatorText(eventStatus) {
     return `In ${diffText}: ${summary} at ${timeText}`;
   }
 
-  function displayCurrentEventAndNextEvent(currentEvent, nextEvent) {
+  function displayCurrentEventAndNextEventOld(currentEvent, nextEvent) {
     const endsInText = getTimeToEventAsText(currentEvent.end);
     const timeText = getTimeOfEventAsText(nextEvent.date);
 
     const summary = trimLongEventName(nextEvent.summary);
 
     return `Ends in ${endsInText}. Next: ${summary} at ${timeText}`;
+  }
+
+  function displayCurrentEventAndNextEventNew(currentEvent, nextEvent) {
+    const endsInText = getTimeToEventAsText(currentEvent.end);
+    const timeText = getTimeOfEventAsText(nextEvent.date);
+
+    const currentSummary = trimLongEventName(currentEvent.summary);
+    const nextSummary = trimLongEventName(nextEvent.summary);
+
+    return `Ends in ${endsInText}: ${currentSummary}. Next: ${nextSummary} at ${timeText}`;
   }
 
   function displayCurrentEvent(event) {
@@ -114,7 +124,9 @@ export function eventStatusToIndicatorText(eventStatus) {
 
   if (currentEvent != null) {
     if (nextEvent != null) {
-      return displayCurrentEventAndNextEvent(currentEvent, nextEvent);
+      return textFormat === 1
+        ? displayCurrentEventAndNextEventNew(currentEvent, nextEvent)
+        : displayCurrentEventAndNextEventOld(currentEvent, nextEvent);
     } else {
       return displayCurrentEvent(currentEvent);
     }
