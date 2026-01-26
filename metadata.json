@@ -6,5 +6,9 @@
   "url": "https://github.com/nanolookc/next-up-2",
   "settings-schema": "org.gnome.shell.extensions.next-up-2",
   "gettext-domain": "next-up-2-indicator-extension",
-  "version": 1
+  "version": 1,
+  "version-name": "1.1",
+  "donations": {
+        "custom": ["https://hrebeni.uk"]
+    }
 }

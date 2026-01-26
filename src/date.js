@@ -107,7 +107,7 @@ export function eventStatusToIndicatorText(eventStatus, textFormat) {
     const currentSummary = trimLongEventName(currentEvent.summary);
     const nextSummary = trimLongEventName(nextEvent.summary);
 
-    return `Ends in ${endsInText}: ${currentSummary}. Next: ${nextSummary} at ${timeText}`;
+    return `Ends in ${endsInText}: ${currentSummary} — Next: ${nextSummary} at ${timeText}`;
   }
 
   function displayCurrentEvent(event) {
