@@ -15,7 +15,7 @@ Tested on GNOME 49.
 
 ## Installation
 
-You can install the extension from [the extensions.gnome.org page](https://extensions.gnome.org/extension/5465/next-up/) by clicking the switch icon.
+You can install the extension from [the extensions.gnome.org page](https://extensions.gnome.org/extension/9194/next-up-2/) by clicking the switch icon.
 
 ## References
 
