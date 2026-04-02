@@ -8,8 +8,8 @@ function trimLongEventName(summary) {
   }
 }
 
-function notFullDayEvent(event) {
-  return !(
+function isAllDayEvent(event) {
+  return (
     event.date.getHours() === 0 &&
     event.date.getMinutes() === 0 &&
     event.end.getHours() === 0 &&
@@ -17,7 +17,11 @@ function notFullDayEvent(event) {
   );
 }
 
-export function getTodaysEvents(calendarSource) {
+function getEventSummary(event) {
+  return trimLongEventName(event.summary);
+}
+
+export function getTodaysEvents(calendarSource, showAllDayEvents) {
   const src = calendarSource;
 
   const today = new Date();
@@ -29,7 +33,9 @@ export function getTodaysEvents(calendarSource) {
   src.requestRange(today, tomorrow);
 
   const rawEvents = src.getEvents(today, tomorrow);
-  const todaysEvents = rawEvents.filter(notFullDayEvent);
+  const todaysEvents = showAllDayEvents
+    ? rawEvents
+    : rawEvents.filter((event) => !isAllDayEvent(event));
 
   return todaysEvents;
 }
@@ -83,37 +89,68 @@ export function getNextEventsToDisplay(todaysEvents) {
 
 export function eventStatusToIndicatorText(eventStatus, textFormat) {
   function displayNextEvent(event) {
+    const summary = getEventSummary(event);
+
+    if (isAllDayEvent(event)) {
+      return `Next: All day: ${summary}`;
+    }
+
     const timeText = getTimeOfEventAsText(event.date);
     const diffText = getTimeToEventAsText(event.date);
-
-    const summary = trimLongEventName(event.summary);
 
     return `In ${diffText}: ${summary} at ${timeText}`;
   }
 
   function displayCurrentEventAndNextEventOld(currentEvent, nextEvent) {
+    const currentSummary = getEventSummary(currentEvent);
+    const nextSummary = getEventSummary(nextEvent);
+
+    if (isAllDayEvent(currentEvent)) {
+      return isAllDayEvent(nextEvent)
+        ? `All day: ${currentSummary}. Next: All day: ${nextSummary}`
+        : `All day: ${currentSummary}. Next: ${nextSummary} at ${getTimeOfEventAsText(nextEvent.date)}`;
+    }
+
+    if (isAllDayEvent(nextEvent)) {
+      const endsInText = getTimeToEventAsText(currentEvent.end);
+      return `Ends in ${endsInText}. Next: All day: ${nextSummary}`;
+    }
+
     const endsInText = getTimeToEventAsText(currentEvent.end);
     const timeText = getTimeOfEventAsText(nextEvent.date);
 
-    const summary = trimLongEventName(nextEvent.summary);
-
-    return `Ends in ${endsInText}. Next: ${summary} at ${timeText}`;
+    return `Ends in ${endsInText}. Next: ${nextSummary} at ${timeText}`;
   }
 
   function displayCurrentEventAndNextEventNew(currentEvent, nextEvent) {
+    const currentSummary = getEventSummary(currentEvent);
+    const nextSummary = getEventSummary(nextEvent);
+
+    if (isAllDayEvent(currentEvent)) {
+      return isAllDayEvent(nextEvent)
+        ? `All day: ${currentSummary} — Next: All day: ${nextSummary}`
+        : `All day: ${currentSummary} — Next: ${nextSummary} at ${getTimeOfEventAsText(nextEvent.date)}`;
+    }
+
+    if (isAllDayEvent(nextEvent)) {
+      const endsInText = getTimeToEventAsText(currentEvent.end);
+      return `Ends in ${endsInText}: ${currentSummary} — Next: All day: ${nextSummary}`;
+    }
+
     const endsInText = getTimeToEventAsText(currentEvent.end);
     const timeText = getTimeOfEventAsText(nextEvent.date);
-
-    const currentSummary = trimLongEventName(currentEvent.summary);
-    const nextSummary = trimLongEventName(nextEvent.summary);
 
     return `Ends in ${endsInText}: ${currentSummary} — Next: ${nextSummary} at ${timeText}`;
   }
 
   function displayCurrentEvent(event) {
+    if (isAllDayEvent(event)) {
+      return `All day: ${getEventSummary(event)}`;
+    }
+
     const endsInText = getTimeToEventAsText(event.end);
 
-    return `Ends in ${endsInText}: ${event.summary}`;
+    return `Ends in ${endsInText}: ${getEventSummary(event)}`;
   }
 
   function displayNoEvents() {

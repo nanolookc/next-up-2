@@ -95,8 +95,10 @@ export default class NextUpExtension extends Extension {
   }
 
   refreshIndicator() {
+    const showAllDayEvents = this._settings.get_boolean("show-all-day-events");
     const todaysEvents = DateHelperFunctions.getTodaysEvents(
-      this._indicator._calendarSource
+      this._indicator._calendarSource,
+      showAllDayEvents
     );
     const eventStatus =
       DateHelperFunctions.getNextEventsToDisplay(todaysEvents);

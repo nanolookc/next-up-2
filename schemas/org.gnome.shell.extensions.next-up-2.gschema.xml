@@ -8,5 +8,8 @@
     <key name="text-format" type="i">
       <default>1</default>
     </key>
+    <key name="show-all-day-events" type="b">
+      <default>false</default>
+    </key>
   </schema>
 </schemalist>

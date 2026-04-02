@@ -2,12 +2,12 @@
   "name": "Next Up 2",
   "description": "Show your next and current calendar event in the status bar",
   "uuid": "next-up-2@nanolookc.github.com",
-  "shell-version": ["48", "49"],
+  "shell-version": ["48", "49", "50"],
   "url": "https://github.com/nanolookc/next-up-2",
   "settings-schema": "org.gnome.shell.extensions.next-up-2",
   "gettext-domain": "next-up-2-indicator-extension",
-  "version": 1,
-  "version-name": "1.1",
+  "version": 3,
+  "version-name": "1.3",
   "donations": {
         "custom": ["https://hrebeni.uk"]
     }
