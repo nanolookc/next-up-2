@@ -3,8 +3,15 @@
 A GNOME Shell extension that shows your next calendar event in the status bar.
 Fork of [Next Up](https://github.com/artisticat1/gnome-next-up) extension
 
+## Features
+
 - Supports GNOME 48, 49, 50
 - Shows current event in indicator text (optional)
+- **Visual Layouts:** Choose between Default and Minimal (short text) styles to save panel space.
+- **Color Thresholds:** Use native GNOME color pickers for active events, warnings (starting soon), and urgency (ending soon).
+- **Early Completion:** Use the drop-down action menu to mark an ongoing event as complete and dismiss it from the top bar.
+- **Keyword Filtering:** Automatically hide events containing specific user-defined keywords.
+- **Dynamic Sizing:** Control the maximum pixel width of the indicator before text gracefully truncates.
 
 ![screenshot1](screenshots/screenshot1.png)
 ![screenshot2](screenshots/screenshot2.png)

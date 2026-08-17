@@ -18,18 +18,20 @@
 
 import GLib from "gi://GLib";
 import GObject from "gi://GObject";
+import Gio from "gi://Gio";
 
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 
 import Indicator from "./src/indicator.js";
 import * as DateHelperFunctions from "./src/date.js";
-import Gio from "gi://Gio";
 
 const IndicatorInstance = GObject.registerClass(Indicator);
 
 export default class NextUpExtension extends Extension {
   enable() {
+    // 1. Initialize local memory for "Early Completion" dismissals
+    this._dismissedEvents = new Set();
 
     this._indicator = new IndicatorInstance({
       confettiGicon: Gio.icon_new_for_string(
@@ -55,7 +57,6 @@ export default class NextUpExtension extends Extension {
       () => {
         this.loadIndicator();
         this._startLoop();
-
         return false;
       }
     );
@@ -67,7 +68,6 @@ export default class NextUpExtension extends Extension {
       5, // seconds to wait
       () => {
         this.refreshIndicator();
-
         return GLib.SOURCE_CONTINUE;
       }
     );
@@ -96,25 +96,93 @@ export default class NextUpExtension extends Extension {
 
   refreshIndicator() {
     const showAllDayEvents = this._settings.get_boolean("show-all-day-events");
-    const todaysEvents = DateHelperFunctions.getTodaysEvents(
+    let todaysEvents = DateHelperFunctions.getTodaysEvents(
       this._indicator._calendarSource,
       showAllDayEvents
     );
-    const eventStatus =
-      DateHelperFunctions.getNextEventsToDisplay(todaysEvents);
-    const textFormat = this._settings.get_int("text-format");
-    const text = DateHelperFunctions.eventStatusToIndicatorText(
-      eventStatus,
-      textFormat
-    );
 
-    if (eventStatus.currentEvent === null && eventStatus.nextEvent === null) {
-      this._indicator.showConfettiIcon();
-    } else {
-      this._indicator.showAlarmIcon();
+    // 2. Pre-filter Excluded Keywords & Dismissed Events
+    const excludedStr = this._settings.get_string("excluded-keywords").toLowerCase();
+    const excludedWords = excludedStr.split(',').map(w => w.trim()).filter(w => w.length > 0);
+
+    todaysEvents = todaysEvents.filter(event => {
+      const summary = (event.summary || "").toLowerCase();
+      // Filter keywords
+      if (excludedWords.some(word => summary.includes(word))) return false;
+      
+      // Filter dismissed events
+      const eventKey = summary + (event.date ? event.date.getTime() : "");
+      if (this._dismissedEvents.has(eventKey)) return false;
+
+      return true;
+    });
+
+    let eventStatus = DateHelperFunctions.getNextEventsToDisplay(todaysEvents);
+
+    // 3. Hide Next When Active
+    if (this._settings.get_boolean("hide-next-when-active") && eventStatus.currentEvent) {
+      eventStatus.nextEvent = null;
     }
 
+    // 4. Generate Text (Custom 'Done for today' override)
+    let text = "";
+    if (!eventStatus.currentEvent && !eventStatus.nextEvent) {
+      text = this._settings.get_string("done-text");
+      const showConfetti = this._settings.get_boolean("show-confetti-icon");
+      this._indicator.showConfettiIcon(showConfetti);
+    } else {
+      const textFormat = this._settings.get_int("text-format");
+      const layoutStyle = this._settings.get_int("layout-style");
+      text = DateHelperFunctions.eventStatusToIndicatorText(eventStatus, textFormat, layoutStyle);
+      this._indicator.showAlarmIcon();
+    }
+    
     this._indicator.setText(text);
+
+    // 5. Calculate Colors (Active vs Warning vs Urgency)
+    let bgColor = "transparent";
+    const nowMs = Date.now();
+    
+    if (eventStatus.currentEvent && eventStatus.currentEvent.end) {
+      // Event is ongoing. Check how close it is to ENDING (Urgency/Red)
+      const minsLeftToEnd = Math.ceil((eventStatus.currentEvent.end.getTime() - nowMs) / 60000);
+      const urgencyThresh = this._settings.get_int("urgency-threshold");
+
+      if (minsLeftToEnd >= 0 && minsLeftToEnd <= urgencyThresh) {
+        bgColor = this._settings.get_string("urgency-color"); // Near the end -> Turn Red
+      } else {
+        bgColor = this._settings.get_string("active-bg-color"); // Otherwise -> Standard active color
+      }
+      
+    } else if (eventStatus.nextEvent && eventStatus.nextEvent.date) {
+      // No active event. Check how close the next one is to STARTING (Warning/Yellow)
+      const minsLeftToStart = Math.ceil((eventStatus.nextEvent.date.getTime() - nowMs) / 60000);
+      const warningThresh = this._settings.get_int("warning-threshold");
+
+      if (minsLeftToStart >= 0 && minsLeftToStart <= warningThresh) {
+        bgColor = this._settings.get_string("warning-color"); // Starting soon -> Turn Yellow
+      }
+    }
+
+    // 6. Push UI overrides and Early Completion state down to the indicator
+    const maxWidth = this._settings.get_int("max-width");
+    
+    // We will build these two methods in indicator.js next
+    this._indicator.applyCustomStyles(bgColor, maxWidth);
+
+    if (eventStatus.currentEvent) {
+      const currentSummary = (eventStatus.currentEvent.summary || "").toLowerCase();
+      const eventKey = currentSummary + (eventStatus.currentEvent.date ? eventStatus.currentEvent.date.getTime() : "");
+      this._indicator.setupEarlyCompletion(
+        this._settings.get_boolean("enable-early-completion"), 
+        () => {
+          this._dismissedEvents.add(eventKey);
+          this.refreshIndicator(); // Instantly refresh GUI
+        }
+      );
+    } else {
+      this._indicator.setupEarlyCompletion(false, null);
+    }
   }
 
   disable() {
@@ -125,6 +193,8 @@ export default class NextUpExtension extends Extension {
 
     this._indicator.destroy();
     this._indicator = null;
+
+    this._dismissedEvents.clear(); // Free memory
 
     if (this.sourceId) {
       GLib.Source.remove(this.sourceId);

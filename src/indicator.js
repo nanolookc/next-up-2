@@ -11,6 +11,7 @@ export default class Indicator extends PanelMenu.Button {
     super();
     this._confettiGicon = props.confettiGicon;
     this._openPrefsCallback = props.openPrefsCallback;
+    this._earlyDoneCallback = null;
   }
 
   _init() {
@@ -32,27 +33,72 @@ export default class Indicator extends PanelMenu.Button {
       x_expand: true,
     });
 
-    this._alarmIcon = new St.Icon({
+    this.icon = new St.Icon({
       icon_name: "alarm-symbolic",
       style_class: "system-status-icon",
     });
 
-    this.icon = this._alarmIcon;
-
+    // Ensure the label truncates neatly with CSS
     this.text = new St.Label({
       text: "Loading",
       y_expand: true,
       y_align: Clutter.ActorAlign.CENTER,
+      style: "text-overflow: ellipsis; white-space: nowrap;"
     });
 
     this._menuLayout.add_child(this.icon);
     this._menuLayout.add_child(this.text);
     this.add_child(this._menuLayout);
-
-    return;
   }
 
   _initialiseMenu() {
+    // 1. Create a custom container for our side-by-side buttons
+    this._actionBox = new PopupMenu.PopupBaseMenuItem({ reactive: false });
+    
+    const buttonBoxLayout = new St.BoxLayout({
+      vertical: false,
+      x_expand: true,
+      x_align: Clutter.ActorAlign.FILL,
+    });
+
+    // 2. Complete Task Button
+    this._completeBtn = new St.Button({
+      style_class: 'button',
+      label: 'Complete Task',
+      x_expand: true,
+      reactive: false, // Disabled by default
+      opacity: 128,    // Greyed out visually by default
+      style: 'margin-right: 4px; padding: 6px 12px; border-radius: 6px; text-align: center;'
+    });
+    
+    this._completeBtn.connect('clicked', () => {
+      if (this._earlyDoneCallback && this._completeBtn.reactive) {
+        this._earlyDoneCallback();
+        this.menu.close();
+      }
+    });
+
+    // 3. Open Calendar Button
+    this._calendarBtn = new St.Button({
+      style_class: 'button',
+      label: 'Open Calendar',
+      x_expand: true,
+      style: 'margin-left: 4px; padding: 6px 12px; border-radius: 6px; text-align: center;'
+    });
+
+    this._calendarBtn.connect('clicked', () => {
+      this.menu.close();
+      Main.panel.toggleCalendar();
+    });
+
+    buttonBoxLayout.add_child(this._completeBtn);
+    buttonBoxLayout.add_child(this._calendarBtn);
+    this._actionBox.add_child(buttonBoxLayout);
+
+    // 4. Add items to the drop-down menu
+    this.menu.addMenuItem(this._actionBox);
+    this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
     const settingsItem = new PopupMenu.PopupMenuItem(_("Settings"));
     settingsItem.connect("activate", () => {
       this._openPrefsCallback();
@@ -66,30 +112,41 @@ export default class Indicator extends PanelMenu.Button {
 
   showAlarmIcon() {
     this.icon.set_icon_name("alarm-symbolic");
+    this.icon.show();
   }
 
-  showConfettiIcon() {
-    this.icon.set_gicon(this._confettiGicon);
-  }
-
-  vfunc_event(event) {
-    if (
-      event.type() == Clutter.EventType.TOUCH_END ||
-      event.type() == Clutter.EventType.BUTTON_RELEASE
-    ) {
-      if (event.get_button() === Clutter.BUTTON_PRIMARY) {
-        // Show calendar on left click
-        if (this.menu.isOpen) {
-          this.menu._getTopMenu().close();
-        } else {
-          Main.panel.toggleCalendar();
-        }
-      } else {
-        // Show settings menu on right click
-        this.menu.toggle();
-      }
+  showConfettiIcon(showIcon = true) {
+    if (showIcon) {
+      this.icon.set_gicon(this._confettiGicon);
+      this.icon.show();
+    } else {
+      this.icon.hide();
     }
+  }
 
-    return Clutter.EVENT_PROPAGATE;
+  applyCustomStyles(bgColor, maxWidth) {
+    const padding = bgColor !== "transparent" && bgColor !== "" ? "padding: 0 8px; border-radius: 6px;" : "";
+    this._menuLayout.set_style(`background-color: ${bgColor}; max-width: ${maxWidth}px; ${padding}`);
+  }
+
+  setupEarlyCompletion(enable, callback) {
+    if (enable && callback) {
+      this._completeBtn.reactive = true;
+      this._completeBtn.opacity = 255; // Fully opaque (enabled)
+      this._earlyDoneCallback = callback;
+    } else {
+      this._completeBtn.reactive = false;
+      this._completeBtn.opacity = 128; // Greyed out (disabled)
+      this._earlyDoneCallback = null;
+    }
+  }
+
+  // Memory Leak Fix for the Calendar Data Source
+  destroy() {
+    if (this._calendarSource) {
+      this._calendarSource.destroy();
+      this._calendarSource = null;
+    }
+    super.destroy();
   }
 }

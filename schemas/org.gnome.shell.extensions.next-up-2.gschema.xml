@@ -11,5 +11,85 @@
     <key name="show-all-day-events" type="b">
       <default>false</default>
     </key>
+
+    <!-- Max Width -->
+    <key name="max-width" type="i">
+      <default>250</default>
+      <summary>Maximum width of the indicator</summary>
+      <description>The maximum width in pixels before text gets truncated.</description>
+    </key>
+
+    <!-- Background Color for Active Events -->
+    <key name="active-bg-color" type="s">
+      <default>'transparent'</default>
+      <summary>Background color when an event is active</summary>
+      <description>Hex color code or rgba value for the active event background.</description>
+    </key>
+
+    <!-- Hide Next Task if Current is Active -->
+    <key name="hide-next-when-active" type="b">
+      <default>false</default>
+      <summary>Hide next event when one is ongoing</summary>
+      <description>If true, only shows the current active event and hides upcoming ones.</description>
+    </key>
+
+    <!-- Custom 'Done for the day' Text -->
+    <key name="done-text" type="s">
+      <default>'Done for today '</default>
+      <summary>Text to display when no events remain</summary>
+      <description>The string displayed when the calendar is clear.</description>
+    </key>
+
+    <!-- Visual Layout Options -->
+    <key name="layout-style" type="i">
+      <default>0</default>
+      <summary>Visual layout style</summary>
+      <description>0: Default, 1: Minimal</description>
+    </key>
+
+    <!-- Warning Settings (e.g., 15 mins out) -->
+    <key name="warning-color" type="s">
+      <default>'#ffff00'</default>
+      <summary>Color for approaching events</summary>
+      <description>Color applied when an event is approaching its start time.</description>
+    </key>
+
+    <key name="warning-threshold" type="i">
+      <default>15</default>
+      <summary>Warning threshold (minutes)</summary>
+      <description>Minutes before an event starts to apply the warning color.</description>
+    </key>
+
+    <!-- Urgency Settings -->
+    <key name="urgency-color" type="s">
+      <default>'#ff0000'</default>
+      <summary>Color for urgent events</summary>
+      <description>Color applied when an event is nearing its start time.</description>
+    </key>
+
+    <key name="urgency-threshold" type="i">
+      <default>10</default>
+      <summary>Urgency threshold (minutes)</summary>
+      <description>Minutes before an event starts to apply the urgency color.</description>
+    </key>
+
+    <!-- Excluded Keywords -->
+    <key name="excluded-keywords" type="s">
+      <default>''</default>
+      <summary>Excluded keywords</summary>
+      <description>Comma-separated list of words. Events containing these will be ignored.</description>
+    </key>
+
+    <!-- Early Completion Toggle -->
+    <key name="enable-early-completion" type="b">
+      <default>true</default>
+      <summary>Enable early completion</summary>
+      <description>Allows dismissing an active event before its scheduled end time.</description>
+    </key>
+
+    <key name="show-confetti-icon" type="b">
+      <default>true</default>
+      <summary>Show party popper icon</summary>
+    </key>
   </schema>
 </schemalist>
