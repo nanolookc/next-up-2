@@ -2,14 +2,94 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.next-up-2" path="/org/gnome/shell/extensions/next-up-2/">
     <!-- See also: https://docs.gtk.org/glib/gvariant-format-strings.html -->
-    <key name="which-panel" type="i">
-      <default>1</default>
-    </key>
     <key name="text-format" type="i">
       <default>1</default>
     </key>
     <key name="show-all-day-events" type="b">
       <default>false</default>
+    </key>
+
+    <!-- Hide Next Task if Current is Active -->
+    <key name="hide-next-when-active" type="b">
+      <default>false</default>
+      <summary>Hide next event when one is ongoing</summary>
+      <description>If true, only shows the current active event and hides upcoming ones.</description>
+    </key>
+
+    <!-- Custom 'Done for the day' Text -->
+    <key name="done-text" type="s">
+      <default>'Done for today!'</default>
+      <summary>Text to display when no events remain</summary>
+      <description>The string displayed when the calendar is clear.</description>
+    </key>
+
+    <!-- Visual Layout Options -->
+    <key name="layout-style" type="i">
+      <default>0</default>
+      <summary>Visual layout style</summary>
+      <description>0: Default, 1: Minimal</description>
+    </key>
+
+    <!-- Countdown Progress -->
+    <key name="progress-green-color" type="s">
+      <default>'#5F8F72'</default>
+      <summary>Progress color with 31 to 60 minutes remaining</summary>
+      <description>A soft sage green used at the start of the final hour.</description>
+    </key>
+
+    <key name="progress-orange-color" type="s">
+      <default>'#A15C2A'</default>
+      <summary>Legacy orange progress color</summary>
+      <description>Retained for settings compatibility.</description>
+    </key>
+
+    <key name="progress-yellow-color" type="s">
+      <default>'#B59A4A'</default>
+      <summary>Progress color with 11 to 30 minutes remaining</summary>
+      <description>A soft amber yellow used as an event approaches.</description>
+    </key>
+
+    <key name="progress-red-color" type="s">
+      <default>'#B26464'</default>
+      <summary>Progress color with 0 to 10 minutes remaining</summary>
+      <description>A soft dusty red used immediately before an event.</description>
+    </key>
+
+    <key name="progress-orange-threshold" type="i">
+      <default>60</default>
+      <summary>Progress window in minutes</summary>
+      <description>The track appears below this number of minutes and represents that complete time window.</description>
+    </key>
+
+    <key name="progress-yellow-threshold" type="i">
+      <default>30</default>
+      <summary>Yellow threshold in minutes</summary>
+      <description>The bar becomes yellow at or below this number of minutes.</description>
+    </key>
+
+    <key name="progress-red-threshold" type="i">
+      <default>10</default>
+      <summary>Red threshold in minutes</summary>
+      <description>The bar becomes red at or below this number of minutes.</description>
+    </key>
+
+    <!-- Excluded Keywords -->
+    <key name="excluded-keywords" type="s">
+      <default>''</default>
+      <summary>Excluded keywords</summary>
+      <description>Comma-separated list of words. Events containing these will be ignored.</description>
+    </key>
+
+    <!-- Early Completion Toggle -->
+    <key name="enable-early-completion" type="b">
+      <default>true</default>
+      <summary>Enable early completion</summary>
+      <description>Allows dismissing an active event before its scheduled end time.</description>
+    </key>
+
+    <key name="show-confetti-icon" type="b">
+      <default>true</default>
+      <summary>Show party popper icon</summary>
     </key>
   </schema>
 </schemalist>

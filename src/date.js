@@ -1,13 +1,3 @@
-const MAX_EVENT_SUMMARY_LENGTH = 35;
-
-function trimLongEventName(summary) {
-  if (summary.length > MAX_EVENT_SUMMARY_LENGTH) {
-    return summary.substring(0, MAX_EVENT_SUMMARY_LENGTH) + "...";
-  } else {
-    return summary;
-  }
-}
-
 function isAllDayEvent(event) {
   return (
     event.date.getHours() === 0 &&
@@ -18,14 +8,13 @@ function isAllDayEvent(event) {
 }
 
 function getEventSummary(event) {
-  return trimLongEventName(event.summary);
+  return event.summary;
 }
 
 export function getTodaysEvents(calendarSource, showAllDayEvents) {
   const src = calendarSource;
-
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Get event from today at midnight
+  today.setHours(0, 0, 0, 0);
 
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
@@ -33,44 +22,34 @@ export function getTodaysEvents(calendarSource, showAllDayEvents) {
   src.requestRange(today, tomorrow);
 
   const rawEvents = src.getEvents(today, tomorrow);
-  const todaysEvents = showAllDayEvents
+  return showAllDayEvents
     ? rawEvents
     : rawEvents.filter((event) => !isAllDayEvent(event));
-
-  return todaysEvents;
 }
 
 export function getNextEventsToDisplay(todaysEvents) {
   const now = new Date();
   const N = todaysEvents.length;
 
-  let currentEvent = null; // The calendar event the user is currently in
-  let nextEvent = null; // The next calendar event coming up
+  let currentEvent = null;
+  let nextEvent = null;
   let done = false;
 
   for (let i = 0; i < N; i++) {
     if (done) break;
 
     const event = todaysEvents[i];
-    const eventStart = event.date;
-    const eventEnd = event.end;
-
-    if (now < eventStart) {
+    if (now < event.date) {
       nextEvent = event;
       break;
-    } else if (now < eventEnd) {
+    } else if (now < event.end) {
       currentEvent = event;
-
       // Check whether there's an event after this one
       if (i < N - 1) {
-        let someNextEvent;
-
         for (let j = i + 1; j < N; j++) {
-          someNextEvent = todaysEvents[j];
-
+          let someNextEvent = todaysEvents[j];
           // Check whether the next event overlaps the current event
           // or whether they start at the same time
-
           if (!(someNextEvent.date.valueOf() === currentEvent.date.valueOf())) {
             nextEvent = someNextEvent;
             done = true;
@@ -81,29 +60,29 @@ export function getNextEventsToDisplay(todaysEvents) {
     }
   }
 
-  return {
-    currentEvent: currentEvent,
-    nextEvent: nextEvent,
-  };
+  return { currentEvent, nextEvent };
 }
 
-export function eventStatusToIndicatorText(eventStatus, textFormat) {
+// Added layoutStyle parameter
+export function eventStatusToIndicatorText(eventStatus, textFormat, layoutStyle = 0) {
+  const isMin = layoutStyle === 1;
+
   function displayNextEvent(event) {
     const summary = getEventSummary(event);
-
-    if (isAllDayEvent(event)) {
-      return `Next: All day: ${summary}`;
-    }
-
-    const timeText = getTimeOfEventAsText(event.date);
-    const diffText = getTimeToEventAsText(event.date);
-
-    return `In ${diffText}: ${summary} at ${timeText}`;
+    if (isAllDayEvent(event)) return isMin ? `Next: ${summary}` : `Next: All day: ${summary}`;
+    
+    return isMin 
+      ? `${getTimeOfEventAsText(event.date)}: ${summary}` 
+      : `In ${getTimeToEventAsText(event.date)}: ${summary} at ${getTimeOfEventAsText(event.date)}`;
   }
 
   function displayCurrentEventAndNextEventOld(currentEvent, nextEvent) {
     const currentSummary = getEventSummary(currentEvent);
     const nextSummary = getEventSummary(nextEvent);
+
+    if (isMin) {
+      return `${currentSummary} (${getTimeToEventAsText(currentEvent.end, true)}) | Next: ${nextSummary} at ${getTimeOfEventAsText(nextEvent.date)}`;
+    }
 
     if (isAllDayEvent(currentEvent)) {
       return isAllDayEvent(nextEvent)
@@ -112,19 +91,19 @@ export function eventStatusToIndicatorText(eventStatus, textFormat) {
     }
 
     if (isAllDayEvent(nextEvent)) {
-      const endsInText = getTimeToEventAsText(currentEvent.end);
-      return `Ends in ${endsInText}. Next: All day: ${nextSummary}`;
+      return `Ends in ${getTimeToEventAsText(currentEvent.end)}. Next: All day: ${nextSummary}`;
     }
 
-    const endsInText = getTimeToEventAsText(currentEvent.end);
-    const timeText = getTimeOfEventAsText(nextEvent.date);
-
-    return `Ends in ${endsInText}. Next: ${nextSummary} at ${timeText}`;
+    return `Ends in ${getTimeToEventAsText(currentEvent.end)}. Next: ${nextSummary} at ${getTimeOfEventAsText(nextEvent.date)}`;
   }
 
   function displayCurrentEventAndNextEventNew(currentEvent, nextEvent) {
     const currentSummary = getEventSummary(currentEvent);
     const nextSummary = getEventSummary(nextEvent);
+
+    if (isMin) {
+      return `${currentSummary} (${getTimeToEventAsText(currentEvent.end, true)}) — ${nextSummary} @ ${getTimeOfEventAsText(nextEvent.date)}`;
+    }
 
     if (isAllDayEvent(currentEvent)) {
       return isAllDayEvent(nextEvent)
@@ -133,28 +112,19 @@ export function eventStatusToIndicatorText(eventStatus, textFormat) {
     }
 
     if (isAllDayEvent(nextEvent)) {
-      const endsInText = getTimeToEventAsText(currentEvent.end);
-      return `Ends in ${endsInText}: ${currentSummary} — Next: All day: ${nextSummary}`;
+      return `Ends in ${getTimeToEventAsText(currentEvent.end)}: ${currentSummary} — Next: All day: ${nextSummary}`;
     }
 
-    const endsInText = getTimeToEventAsText(currentEvent.end);
-    const timeText = getTimeOfEventAsText(nextEvent.date);
-
-    return `Ends in ${endsInText}: ${currentSummary} — Next: ${nextSummary} at ${timeText}`;
+    return `Ends in ${getTimeToEventAsText(currentEvent.end)}: ${currentSummary} — Next: ${nextSummary} at ${getTimeOfEventAsText(nextEvent.date)}`;
   }
 
   function displayCurrentEvent(event) {
-    if (isAllDayEvent(event)) {
-      return `All day: ${getEventSummary(event)}`;
-    }
-
-    const endsInText = getTimeToEventAsText(event.end);
-
-    return `Ends in ${endsInText}: ${getEventSummary(event)}`;
-  }
-
-  function displayNoEvents() {
-    return "Done for today!";
+    const summary = getEventSummary(event);
+    if (isAllDayEvent(event)) return isMin ? summary : `All day: ${summary}`;
+    
+    return isMin 
+      ? `${summary} (${getTimeToEventAsText(event.end, true)} left)` 
+      : `Ends in ${getTimeToEventAsText(event.end)}: ${summary}`;
   }
 
   const { currentEvent, nextEvent } = eventStatus;
@@ -167,32 +137,29 @@ export function eventStatusToIndicatorText(eventStatus, textFormat) {
     } else {
       return displayCurrentEvent(currentEvent);
     }
+  } else if (nextEvent != null) {
+    return displayNextEvent(nextEvent);
   } else {
-    if (nextEvent != null) {
-      return displayNextEvent(nextEvent);
-    } else {
-      return displayNoEvents();
-    }
+    return "Done for today!"; 
   }
 }
 
 function getTimeOfEventAsText(eventDate) {
   const hrs = eventDate.getHours();
-  let mins = eventDate.getMinutes().toString();
-
-  mins = mins.padEnd(2, "0"); // Show e.g. 11am as 11:00 instead of 11:0
-
-  const time = `${hrs}:${mins}`;
-  return time;
+  let mins = eventDate.getMinutes().toString().padStart(2, "0");
+  return `${hrs}:${mins}`;
 }
 
-function getTimeToEventAsText(eventDate) {
+// Added minimal boolean to format short time units (e.g., 1h 5m)
+function getTimeToEventAsText(eventDate, minimal = false) {
   const now = new Date();
   const diff = Math.abs(eventDate - now);
   const diffInMins = Math.ceil(diff / (1000 * 60));
-
   const hrDiff = Math.floor(diffInMins / 60);
   const minDiff = diffInMins % 60;
 
+  if (minimal) {
+    return hrDiff > 0 ? `${hrDiff}h ${minDiff}m` : `${minDiff}m`;
+  }
   return hrDiff > 0 ? `${hrDiff} hr ${minDiff} min` : `${minDiff} min`;
 }
