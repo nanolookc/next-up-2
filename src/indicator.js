@@ -16,7 +16,12 @@ export default class Indicator extends PanelMenu.Button {
   _init() {
     super._init(0.0, _("Next Up 2 Indicator"));
 
-    this._calendarSource = new Calendar.DBusEventSource();
+    // Share the top-bar calendar's source. gnome-shell-calendar-server keeps one time range
+    // for all clients, so a second source asking for today only makes the server miss
+    // recurring events moved to another day and show them on their old day.
+    const shellSource = Main.panel.statusArea.dateMenu?._eventSource;
+    this._ownsCalendarSource = !shellSource;
+    this._calendarSource = shellSource ?? new Calendar.DBusEventSource();
 
     this._loadGUI();
     this._initialiseMenu();
@@ -37,7 +42,9 @@ export default class Indicator extends PanelMenu.Button {
       this.remove_action(this._calendarClickGesture);
       this._calendarClickGesture = null;
     }
-    this._calendarSource.destroy();
+    // The shared source belongs to the Shell; extensions get disabled on every screen lock.
+    if (this._ownsCalendarSource)
+      this._calendarSource.destroy();
     this._calendarSource = null;
     super._onDestroy();
   }

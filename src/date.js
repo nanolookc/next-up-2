@@ -21,7 +21,8 @@ function getEventSummary(event) {
   return trimLongEventName(event.summary);
 }
 
-export function getTodaysEvents(calendarSource, showAllDayEvents) {
+// Returns null while the events can't be read without disturbing the top-bar calendar.
+export function getTodaysEvents(calendarSource, showAllDayEvents, calendarOpen) {
   const src = calendarSource;
 
   const today = new Date();
@@ -30,7 +31,18 @@ export function getTodaysEvents(calendarSource, showAllDayEvents) {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  src.requestRange(today, tomorrow);
+  // Never shrink the range to today only (see indicator.js). Usually the top-bar month
+  // already covers today; otherwise ask for a month either side, unless the user is
+  // browsing other months in the open calendar.
+  const [begin, end] = [src._lastRequestBegin, src._lastRequestEnd];
+  if (!begin || !end || today < begin || tomorrow > end) {
+    if (calendarOpen && begin && end) return null;
+    const monthBefore = new Date(today);
+    monthBefore.setMonth(today.getMonth() - 1);
+    const monthAfter = new Date(tomorrow);
+    monthAfter.setMonth(tomorrow.getMonth() + 1);
+    src.requestRange(monthBefore, monthAfter);
+  }
 
   const rawEvents = src.getEvents(today, tomorrow);
   const todaysEvents = showAllDayEvents

@@ -101,8 +101,10 @@ export default class NextUpExtension extends Extension {
     const showAllDayEvents = this._settings.get_boolean("show-all-day-events");
     const todaysEvents = DateHelperFunctions.getTodaysEvents(
       this._indicator._calendarSource,
-      showAllDayEvents
+      showAllDayEvents,
+      Main.panel.statusArea.dateMenu?.menu.isOpen
     );
+    if (todaysEvents === null) return;
     const eventStatus =
       DateHelperFunctions.getNextEventsToDisplay(todaysEvents);
     const textFormat = this._settings.get_int("text-format");
